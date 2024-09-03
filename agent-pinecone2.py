@@ -8,6 +8,12 @@ import hmac
 import base64
 import hashlib
 import pandas as pd
+from botocore.exceptions import ClientError
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configuración de AWS Cognito
 USER_POOL_ID = 'us-east-1_DzVB7yQ87'
@@ -705,18 +711,199 @@ def show_users():
     # # Puedes agregar gráficos si lo deseas
     # st.bar_chart(df['Status'].value_counts())
     
-def create_user_form():
-    st.header("Create New User")
-    new_email = st.text_input("Email")
-    new_password = st.text_input("Temporary Password", type="password")
-    new_nickname = st.text_input("Nickname")
-    is_admin = st.checkbox("Is Admin")
-    if st.button("Create User"):
-        success, message = create_user(new_email, new_password, new_nickname, is_admin)
-        if success:
-            st.success(message)
-        else:
-            st.error(message)
+# def create_user_form():
+#     st.header("Create New User")
+#     new_email = st.text_input("Email")
+#     new_password = st.text_input("Temporary Password", type="password")
+#     new_nickname = st.text_input("Nickname")
+#     is_admin = st.checkbox("Is Admin")
+#     if st.button("Create User"):
+#         success, message = create_user(new_email, new_password, new_nickname, is_admin)
+#         if success:
+#             st.success(message)
+#         else:
+#             st.error(message)
+
+# def delete_user_form():
+#     st.header("Delete User")
+#     delete_option = st.radio("Delete by", ("Username", "Email"))
+#     if delete_option == "Username":
+#         delete_identifier = st.text_input("Username to delete")
+#     else:
+#         delete_identifier = st.text_input("Email to delete")
+#     if st.button("Delete User"):
+#         success, message = delete_user(delete_identifier, by_email=(delete_option == "Email"))
+#         if success:
+#             st.success(message)
+#         else:
+#             st.error(message)
+
+# def create_user(email, temporary_password, nickname, is_admin=False):
+#     client = boto3.client('cognito-idp', region_name=REGION_NAME)
+#     try:
+#         user_attributes = [
+#             {'Name': 'email', 'Value': email},
+#             {'Name': 'email_verified', 'Value': 'true'},
+#             {'Name': 'nickname', 'Value': nickname},
+#             {'Name': 'custom:is_admin', 'Value': 'true' if is_admin else 'false'}
+#         ]
+#         response = client.admin_create_user(
+#             UserPoolId=USER_POOL_ID,
+#             Username=email,
+#             UserAttributes=user_attributes,
+#             TemporaryPassword=temporary_password,
+#             MessageAction='SUPPRESS'
+#         )
+#         return True, "User created successfully"
+#     except Exception as e:
+#         return False, str(e)
+
+# def create_user_form():
+#     st.header("Create New User")
+#     new_email = st.text_input("Email")
+#     new_nickname = st.text_input("Nickname")
+#     is_admin = st.checkbox("Is Admin")
+#     send_invitation = st.checkbox("Send Invitation by Email")
+#     generate_password = st.checkbox("Generate Temporary Password")
+    
+#     if st.button("Create User"):
+#         success, message = create_user(new_email, new_nickname, is_admin, send_invitation, generate_password)
+#         if success:
+#             st.success(message)
+#         else:
+#             st.error(message)
+
+# def delete_user_form():
+#     st.header("Delete User")
+#     delete_option = st.radio("Delete by", ("Username", "Email"))
+#     if delete_option == "Username":
+#         delete_identifier = st.text_input("Username to delete")
+#     else:
+#         delete_identifier = st.text_input("Email to delete")
+#     if st.button("Delete User"):
+#         success, message = delete_user(delete_identifier, by_email=(delete_option == "Email"))
+#         if success:
+#             st.success(message)
+#         else:
+#             st.error(message)
+
+# def create_user(email, nickname, is_admin=False, send_invitation=False, generate_password=False):
+#     client = boto3.client('cognito-idp', region_name=REGION_NAME)
+#     try:
+#         user_attributes = [
+#             {'Name': 'email', 'Value': email},
+#             {'Name': 'email_verified', 'Value': 'true'},
+#             {'Name': 'nickname', 'Value': nickname},
+#             {'Name': 'custom:is_admin', 'Value': 'true' if is_admin else 'false'}
+#         ]
+        
+#         # Construcción del diccionario de parámetros
+#         params = {
+#             'UserPoolId': USER_POOL_ID,
+#             'Username': email,
+#             'UserAttributes': user_attributes,
+#             'MessageAction': 'SUPPRESS' if not send_invitation else 'RESEND'
+#         }
+
+#         if not generate_password:
+#             # Si el usuario desea proporcionar una contraseña temporal
+#             temporary_password = st.text_input("Temporary Password", type="password")
+#             params['TemporaryPassword'] = temporary_password
+
+#         response = client.admin_create_user(**params)
+
+#         return True, "User created successfully"
+#     except Exception as e:
+#         return False, str(e)
+# def create_user_form():
+#     st.header("Create New User")
+#     new_email = st.text_input("Email")
+#     new_nickname = st.text_input("Nickname")
+#     is_admin = st.checkbox("Is Admin")
+#     send_invitation = st.checkbox("Send Invitation by Email")
+#     generate_password = st.checkbox("Generate Temporary Password")
+    
+#     if st.button("Create User"):
+#         success, message = create_user(new_email, new_nickname, is_admin, send_invitation, generate_password)
+#         if success:
+#             st.success(message)
+#         else:
+#             st.error(message)
+
+# def delete_user_form():
+#     st.header("Delete User")
+#     delete_option = st.radio("Delete by", ("Username", "Email"))
+#     if delete_option == "Username":
+#         delete_identifier = st.text_input("Username to delete")
+#     else:
+#         delete_identifier = st.text_input("Email to delete")
+#     if st.button("Delete User"):
+#         success, message = delete_user(delete_identifier, by_email=(delete_option == "Email"))
+#         if success:
+#             st.success(message)
+#         else:
+#             st.error(message)
+
+# def create_user(email, nickname, is_admin=False, send_invitation=False, generate_password=False):
+#     client = boto3.client('cognito-idp', region_name=REGION_NAME)
+#     try:
+#         user_attributes = [
+#             {'Name': 'email', 'Value': email},
+#             {'Name': 'email_verified', 'Value': 'true'},
+#             {'Name': 'nickname', 'Value': nickname},
+#             {'Name': 'custom:is_admin', 'Value': 'true' if is_admin else 'false'}
+#         ]
+        
+#         # Construcción del diccionario de parámetros
+#         params = {
+#             'UserPoolId': USER_POOL_ID,
+#             'Username': email,
+#             'UserAttributes': user_attributes
+#         }
+
+#         if generate_password:
+#             # Si se selecciona generar una contraseña temporal
+#             temporary_password = client.admin_set_user_password(
+#                 UserPoolId=USER_POOL_ID,
+#                 Username=email,
+#                 Permanent=False
+#             )
+#             st.write(f"Generated Temporary Password: {temporary_password['Password']}")
+#         else:
+#             # Si el usuario proporciona una contraseña temporal
+#             temporary_password = st.text_input("Temporary Password", type="password")
+#             if temporary_password:
+#                 params['TemporaryPassword'] = temporary_password
+        
+#         if send_invitation:
+#             # No es necesario establecer 'MessageAction': 'RESEND' para enviar una invitación a un nuevo usuario
+#             params['DesiredDeliveryMediums'] = ['EMAIL']
+
+#         response = client.admin_create_user(**params)
+
+#         return True, "User created successfully"
+#     except Exception as e:
+#         return False, str(e)
+
+# def create_user_form():
+#     st.header("Create New User")
+#     new_email = st.text_input("Email")
+#     new_nickname = st.text_input("Nickname")
+#     is_admin = st.checkbox("Is Admin")
+#     send_invitation = st.checkbox("Send Invitation by Email")
+    
+#     # Mostrar la opción de generar contraseña solo si no se selecciona enviar la invitación
+#     if not send_invitation:
+#         generate_password = st.checkbox("Generate Temporary Password")
+#     else:
+#         generate_password = False
+
+#     if st.button("Create User"):
+#         success, message = create_user(new_email, new_nickname, is_admin, send_invitation, generate_password)
+#         if success:
+#             st.success(message)
+#         else:
+#             st.error(message)
 
 def delete_user_form():
     st.header("Delete User")
@@ -732,7 +919,82 @@ def delete_user_form():
         else:
             st.error(message)
 
-def create_user(email, temporary_password, nickname, is_admin=False):
+# def create_user(email, nickname, is_admin=False, send_invitation=False, generate_password=False):
+#     client = boto3.client('cognito-idp', region_name=REGION_NAME)
+#     try:
+#         user_attributes = [
+#             {'Name': 'email', 'Value': email},
+#             {'Name': 'email_verified', 'Value': 'true'},
+#             {'Name': 'nickname', 'Value': nickname},
+#             {'Name': 'custom:is_admin', 'Value': 'true' if is_admin else 'false'}
+#         ]
+        
+#         # Construcción del diccionario de parámetros
+#         params = {
+#             'UserPoolId': USER_POOL_ID,
+#             'Username': email,
+#             'UserAttributes': user_attributes
+#         }
+
+#         if not send_invitation:
+#             # Si el usuario desea proporcionar o generar una contraseña temporal
+#             if generate_password:
+#                 # Generar una contraseña temporal
+#                 temporary_password = client.admin_set_user_password(
+#                     UserPoolId=USER_POOL_ID,
+#                     Username=email,
+#                     Permanent=False
+#                 )
+#                 st.write(f"Generated Temporary Password: {temporary_password['Password']}")
+#             else:
+#                 # Pedir al usuario que proporcione una contraseña temporal
+#                 temporary_password = st.text_input("Temporary Password", type="password")
+#                 if not temporary_password:
+#                     return False, "Temporary Password is required if not sending an invitation."
+#                 params['TemporaryPassword'] = temporary_password
+        
+#         if send_invitation:
+#             # Enviar invitación por correo electrónico
+#             params['DesiredDeliveryMediums'] = ['EMAIL']
+
+#         response = client.admin_create_user(**params)
+
+#         return True, "User created successfully"
+#     except Exception as e:
+#         return False, str(e)
+
+ 
+def create_user_form():
+    st.header("Create New User")
+    
+    # Obtener entradas del formulario
+    new_email = st.text_input("Email")
+    new_nickname = st.text_input("Nickname")
+    is_admin = st.checkbox("Is Admin")
+    
+    # Checkbox para enviar invitación por email
+    send_invitation = st.checkbox("Send Invitation by Email")
+
+    # Condicional para mostrar la opción de generar una contraseña temporal
+    if not send_invitation:
+        generate_password = st.checkbox("Generate Temporary Password")
+    else:
+        generate_password = False
+
+    # Capturar la contraseña temporal solo si no se selecciona 'send_invitation'
+    temporary_password = ""
+    if not send_invitation and not generate_password:
+        temporary_password = st.text_input("Temporary Password", type="password")
+
+    # Botón para crear el usuario
+    if st.button("Create User"):
+        success, message = create_user(new_email, new_nickname, is_admin, send_invitation, generate_password, temporary_password)
+        if success:
+            st.success(message)
+        else:
+            st.error(message)
+
+def create_user(email, nickname, is_admin=False, send_invitation=False, generate_password=False, temporary_password=""):
     client = boto3.client('cognito-idp', region_name=REGION_NAME)
     try:
         user_attributes = [
@@ -741,17 +1003,35 @@ def create_user(email, temporary_password, nickname, is_admin=False):
             {'Name': 'nickname', 'Value': nickname},
             {'Name': 'custom:is_admin', 'Value': 'true' if is_admin else 'false'}
         ]
-        response = client.admin_create_user(
-            UserPoolId=USER_POOL_ID,
-            Username=email,
-            UserAttributes=user_attributes,
-            TemporaryPassword=temporary_password,
-            MessageAction='SUPPRESS'
-        )
+        
+        # Construcción del diccionario de parámetros
+        params = {
+            'UserPoolId': USER_POOL_ID,
+            'Username': email,
+            'UserAttributes': user_attributes
+        }
+
+        if not send_invitation:
+            if generate_password:
+                response = client.admin_create_user(**params)
+                # Se genera una contraseña temporal automática
+                st.write("Cognito generará una contraseña temporal y la enviará al usuario.")
+            else:
+                # Si el usuario proporciona una contraseña temporal
+                if temporary_password:
+                    params['TemporaryPassword'] = temporary_password
+                else:
+                    return False, "Temporary Password is required if not sending an invitation."
+        
+        if send_invitation:
+            # Enviar invitación por correo electrónico
+            params['DesiredDeliveryMediums'] = ['EMAIL']
+            response = client.admin_create_user(**params)
+
         return True, "User created successfully"
     except Exception as e:
         return False, str(e)
-
+    
 def delete_user(identifier, by_email=False):
     client = boto3.client('cognito-idp', region_name=REGION_NAME)
     try:
