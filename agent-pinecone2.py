@@ -23,7 +23,16 @@ REGION_NAME = 'us-east-1'
 
 # Funciones auxiliares
 
-
+# new add
+def list_all_conversations():
+    conversations = {}
+    root_folder = "conversations"
+    for user_folder in os.listdir(root_folder):
+        user_path = os.path.join(root_folder, user_folder)
+        if os.path.isdir(user_path):
+            user_conversations = [f for f in os.listdir(user_path) if f.endswith('.json')]
+            conversations[user_folder] = user_conversations
+    return conversations
 
 def list_users():
     client = boto3.client('cognito-idp', region_name=REGION_NAME)
@@ -389,7 +398,7 @@ def logout():
     st.session_state.clear()
     st.rerun()
         
-def chatbot_page():
+def chatbot_page_old():
     # Obtener el nombre del usuario de la sesión
     user_name = st.session_state.get('user_name', 'Usuario')
     
@@ -453,6 +462,218 @@ def chatbot_page():
     if st.sidebar.button("Logout", key="logout-button-2"):
         logout()
 
+# def chatbot_page():
+#     # Obtener el nombre del usuario de la sesión
+#     user_name = st.session_state.get('user_name', 'Usuario')
+    
+#     st.markdown("""
+#     <style>
+#         .stButton > button {
+#             width: 100%;
+#         }
+#     </style>
+#     """, unsafe_allow_html=True)
+    
+#     # Mostrar el saludo personalizado
+#     st.markdown(f"<h1 style='text-align: center;'>¡Bienvenido, {user_name}! 👋</h1>", unsafe_allow_html=True)
+#     st.markdown("<h2 style='text-align: center;'>🤖 Honne IA 3.0 Pinecone</h2>", unsafe_allow_html=True)
+
+#     # Opción para administradores de ver todas las conversaciones
+#     if st.session_state.get('is_admin', False):
+#         view_mode = st.radio("View mode", ["My Conversations", "All Conversations"])
+#     else:
+#         view_mode = "My Conversations"
+
+#     if view_mode == "My Conversations":
+#         user_folder = f"conversations/{st.session_state.email.split('@')[0]}"
+#         if not os.path.exists(user_folder):
+#             os.makedirs(user_folder)
+#         saved_conversations = [f for f in os.listdir(user_folder) if f.endswith('.json')]
+#     else:
+#         conversations = list_all_conversations()
+#         saved_conversations = [f"{user}/{conv}" for user, convs in conversations.items() for conv in convs]
+
+#     if st.sidebar.button("Start New Conversation"):
+#         start_new_conversation()
+
+#     selected_conversation = st.sidebar.selectbox(
+#         "Load or start a conversation",
+#         ["New conversation"] + saved_conversations,
+#         key="conversation_selector"
+#     )
+    
+#     # checkbox
+#     show_references = st.sidebar.checkbox("Show References", value=True, key="show_references")
+
+#     if selected_conversation == "New conversation":
+#         if "messages" not in st.session_state or st.session_state.current_conversation != "New conversation":
+#             start_new_conversation()
+#     else:
+#         if "current_conversation" not in st.session_state or st.session_state.current_conversation != selected_conversation:
+#             if view_mode == "My Conversations":
+#                 st.session_state.messages = load_conversation(os.path.join(user_folder, selected_conversation))
+#             else:
+#                 user, conv = selected_conversation.split('/', 1)
+#                 st.session_state.messages = load_conversation(os.path.join("conversations", user, conv))
+#             st.session_state.current_conversation = selected_conversation
+#             st.session_state.conversation_filename = selected_conversation.split('/')[-1]
+
+#     if "messages" in st.session_state:
+#         for message in st.session_state.messages:
+#             with st.chat_message(message["role"]):
+#                 st.write(message["content"])
+
+#     user_input = st.chat_input("Type your message here")
+
+#     if user_input:
+#         st.session_state.messages.append({"role": "user", "content": user_input})
+        
+#         assistant_response = process_llm_response(user_input, show_references)
+#         st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+
+#         if view_mode == "My Conversations":
+#             save_conversation(st.session_state.messages, os.path.join(user_folder, st.session_state.conversation_filename))
+#         else:
+#             user, conv = selected_conversation.split('/', 1)
+#             save_conversation(st.session_state.messages, os.path.join("conversations", user, conv))
+        
+#         st.rerun()
+        
+#     if st.sidebar.button("Logout", key="logout-button-2"):
+#         logout()
+
+# def chatbot_page():
+#     user_name = st.session_state.get('user_name', 'Usuario')
+    
+#     st.markdown(f"<h1 style='text-align: center;'>¡Bienvenido, {user_name}! 👋</h1>", unsafe_allow_html=True)
+#     st.markdown("<h2 style='text-align: center;'>🤖 Honne IA 3.0 Pinecone</h2>", unsafe_allow_html=True)
+
+#     # Inicializar el modo de visualización en el estado de la sesión si no existe
+#     if 'view_mode' not in st.session_state:
+#         st.session_state.view_mode = "My Conversations"
+
+#     # Opción para administradores de ver todas las conversaciones
+#     if st.session_state.get('is_admin', False):
+#         new_view_mode = st.radio("View mode", ["My Conversations", "All Conversations"])
+#         if new_view_mode != st.session_state.view_mode:
+#             st.session_state.view_mode = new_view_mode
+#             st.rerun()  # Forzar recarga de la página
+#     else:
+#         st.session_state.view_mode = "My Conversations"
+
+#     # Cargar las conversaciones basadas en el modo de visualización
+#     if st.session_state.view_mode == "My Conversations":
+#         user_folder = f"conversations/{st.session_state.email.split('@')[0]}"
+#         if not os.path.exists(user_folder):
+#             os.makedirs(user_folder)
+#         saved_conversations = [f for f in os.listdir(user_folder) if f.endswith('.json')]
+#     else:
+#         conversations = list_all_conversations()
+#         saved_conversations = [f"{user}/{conv}" for user, convs in conversations.items() for conv in convs]
+
+#     if st.sidebar.button("Start New Conversation"):
+#         start_new_conversation()
+
+#     selected_conversation = st.sidebar.selectbox(
+#         "Load or start a conversation",
+#         ["New conversation"] + saved_conversations,
+#         key="conversation_selector"
+#     )
+    
+#     show_references = st.sidebar.checkbox("Show References", value=True, key="show_references")
+
+#     if selected_conversation == "New conversation":
+#         if "messages" not in st.session_state or st.session_state.current_conversation != "New conversation":
+#             start_new_conversation()
+#     else:
+#         if "current_conversation" not in st.session_state or st.session_state.current_conversation != selected_conversation:
+#             if st.session_state.view_mode == "My Conversations":
+#                 user_folder = f"conversations/{st.session_state.email.split('@')[0]}"
+#                 st.session_state.messages = load_conversation(os.path.join(user_folder, selected_conversation))
+#             else:
+#                 user, conv = selected_conversation.split('/', 1)
+#                 st.session_state.messages = load_conversation(os.path.join("conversations", user, conv))
+#             st.session_state.current_conversation = selected_conversation
+#             st.session_state.conversation_filename = selected_conversation.split('/')[-1]
+
+#     if "messages" in st.session_state:
+#         for message in st.session_state.messages:
+#             with st.chat_message(message["role"]):
+#                 st.write(message["content"])
+
+#     user_input = st.chat_input("Type your message here")
+
+#     if user_input:
+#         st.session_state.messages.append({"role": "user", "content": user_input})
+        
+#         assistant_response = process_llm_response(user_input, show_references)
+#         st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+
+#         if st.session_state.view_mode == "My Conversations":
+#             user_folder = f"conversations/{st.session_state.email.split('@')[0]}"
+#             save_conversation(st.session_state.messages, os.path.join(user_folder, st.session_state.conversation_filename))
+#         else:
+#             user, conv = st.session_state.current_conversation.split('/', 1)
+#             save_conversation(st.session_state.messages, os.path.join("conversations", user, conv))
+        
+#         st.rerun()
+        
+#     if st.sidebar.button("Logout", key="logout-button-2"):
+#         logout()
+
+
+def chatbot_page():
+    user_name = st.session_state.get('user_name', 'Usuario')
+    
+    st.markdown(f"<h1 style='text-align: center;'>¡Bienvenido, {user_name}! 👋</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>🤖 Honne IA 3.0 Pinecone</h2>", unsafe_allow_html=True)
+
+    user_folder = f"conversations/{st.session_state.email.split('@')[0]}"
+    if not os.path.exists(user_folder):
+        os.makedirs(user_folder)
+
+    saved_conversations = [f for f in os.listdir(user_folder) if f.endswith('.json')]
+
+    if st.sidebar.button("Start New Conversation"):
+        start_new_conversation()
+
+    selected_conversation = st.sidebar.selectbox(
+        "Load or start a conversation",
+        ["New conversation"] + saved_conversations,
+        key="conversation_selector"
+    )
+    
+    show_references = st.sidebar.checkbox("Show References", value=True, key="show_references")
+
+    if selected_conversation == "New conversation":
+        if "messages" not in st.session_state or st.session_state.current_conversation != "New conversation":
+            start_new_conversation()
+    else:
+        if "current_conversation" not in st.session_state or st.session_state.current_conversation != selected_conversation:
+            st.session_state.messages = load_conversation(os.path.join(user_folder, selected_conversation))
+            st.session_state.current_conversation = selected_conversation
+            st.session_state.conversation_filename = selected_conversation
+
+    if "messages" in st.session_state:
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.write(message["content"])
+
+    user_input = st.chat_input("Type your message here")
+
+    if user_input:
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        
+        assistant_response = process_llm_response(user_input, show_references)
+        st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+
+        save_conversation(st.session_state.messages, os.path.join(user_folder, st.session_state.conversation_filename))
+        
+        st.rerun()
+        
+    if st.sidebar.button("Logout", key="logout-button-2"):
+        logout()
+        
 def main_old():
     init_session_state()
 
@@ -617,13 +838,105 @@ def admin_page_old():
             else:
                 st.error(message)
 
+# def admin_page():
+#     st.title("Admin Dashboard")
+
+#     # Select box for choosing admin function
+#     admin_function = st.selectbox(
+#         "Choose Admin Function",
+#         ["Show Users", "Create User", "Update User", "Delete User"]
+#     )
+
+#     if admin_function == "Show Users":
+#         show_users()
+#     elif admin_function == "Create User":
+#         create_user_form()
+#     elif admin_function == "Update User":
+#         update_user_form()
+#     elif admin_function == "Delete User":
+#         delete_user_form()
+ 
+# def admin_page():
+#     st.title("Admin Dashboard")
+
+#     admin_function = st.selectbox(
+#         "Choose Admin Function",
+#         ["Show Users", "Create User", "Update User", "Delete User", "View All Conversations"]
+#     )
+
+#     if admin_function == "Show Users":
+#         show_users()
+#     elif admin_function == "Create User":
+#         create_user_form()
+#     elif admin_function == "Update User":
+#         update_user_form()
+#     elif admin_function == "Delete User":
+#         delete_user_form()
+#     elif admin_function == "View All Conversations":
+#         view_all_conversations()
+
+# def view_all_conversations():
+#     st.header("All User Conversations")
+#     conversations = list_all_conversations()
+#     for user, user_conversations in conversations.items():
+#         st.subheader(f"User: {user}")
+#         for conversation in user_conversations:
+#             if st.button(f"View: {conversation}", key=f"{user}_{conversation}"):
+#                 view_conversation(user, conversation)
+
+# def view_conversation(user, conversation):
+#     filepath = os.path.join("conversations", user, conversation)
+#     with open(filepath, 'r') as f:
+#         messages = json.load(f)
+#     st.subheader(f"Conversation: {conversation}")
+#     for message in messages:
+#         with st.chat_message(message["role"]):
+#             st.write(message["content"])        
+
+
+# def admin_page():
+#     st.title("Admin Dashboard")
+
+#     admin_function = st.selectbox(
+#         "Choose Admin Function",
+#         ["Show Users", "Create User", "Update User", "Delete User", "View All Conversations"]
+#     )
+
+#     if admin_function == "Show Users":
+#         show_users()
+#     elif admin_function == "Create User":
+#         create_user_form()
+#     elif admin_function == "Update User":
+#         update_user_form()
+#     elif admin_function == "Delete User":
+#         delete_user_form()
+#     elif admin_function == "View All Conversations":
+#         view_all_conversations()
+
+# def view_all_conversations():
+#     st.header("All User Conversations")
+#     conversations = list_all_conversations()
+#     for user, user_conversations in conversations.items():
+#         st.subheader(f"User: {user}")
+#         for conversation in user_conversations:
+#             if st.button(f"View: {conversation}", key=f"{user}_{conversation}"):
+#                 view_conversation(user, conversation)
+
+# def view_conversation(user, conversation):
+#     filepath = os.path.join("conversations", user, conversation)
+#     with open(filepath, 'r') as f:
+#         messages = json.load(f)
+#     st.subheader(f"Conversation: {conversation}")
+#     for message in messages:
+#         with st.chat_message(message["role"]):
+#             st.write(message["content"])
+
 def admin_page():
     st.title("Admin Dashboard")
 
-    # Select box for choosing admin function
     admin_function = st.selectbox(
         "Choose Admin Function",
-        ["Show Users", "Create User", "Update User", "Delete User"]
+        ["Show Users", "Create User", "Update User", "Delete User", "View All Conversations"]
     )
 
     if admin_function == "Show Users":
@@ -634,7 +947,72 @@ def admin_page():
         update_user_form()
     elif admin_function == "Delete User":
         delete_user_form()
+    elif admin_function == "View All Conversations":
+        view_all_conversations()
+
+# def view_all_conversations():
+#     st.header("All User Conversations")
+#     conversations = list_all_conversations()
+    
+#     # Crear una lista de todas las conversaciones con formato "usuario: conversación"
+#     all_conversations = [f"{user}: {conv}" for user, user_conversations in conversations.items() for conv in user_conversations]
+    
+#     # Usar un selectbox para mostrar todas las conversaciones
+#     selected_conversation = st.selectbox("Select a conversation to view", all_conversations)
+    
+#     if selected_conversation:
+#         # Separar el usuario y la conversación seleccionada
+#         user, conversation = selected_conversation.split(": ")
+#         view_conversation(user, conversation)
+
+def view_all_conversations():
+    st.header("All User Conversations")
+    conversations = list_all_conversations()
+    
+    # Crear una lista de todas las conversaciones con formato "usuario: conversación"
+    all_conversations = ["Select a conversation"] + [f"{user}: {conv}" for user, user_conversations in conversations.items() for conv in user_conversations]
+    
+    # Usar un selectbox para mostrar todas las conversaciones
+    selected_conversation = st.selectbox("Select a conversation to view", all_conversations)
+    
+    if selected_conversation != "Select a conversation":
+        # Separar el usuario y la conversación seleccionada
+        user, conversation = selected_conversation.split(": ")
+        view_conversation(user, conversation)
+    else:
+        st.write("Please select a conversation to view its contents.")
         
+        # Mostrar un resumen de las conversaciones disponibles
+        st.subheader("Available Conversations:")
+        for user, user_conversations in conversations.items():
+            st.write(f"**{user}**: {len(user_conversations)} conversation(s)")
+
+def view_conversation(user, conversation):
+    filepath = os.path.join("conversations", user, conversation)
+    with open(filepath, 'r') as f:
+        messages = json.load(f)
+    st.subheader(f"Conversation: {conversation}")
+    for message in messages:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+def list_all_conversations():
+    conversations = {}
+    conversations_dir = "conversations"
+    
+    # Recorrer el directorio de conversaciones
+    for user in os.listdir(conversations_dir):
+        user_dir = os.path.join(conversations_dir, user)
+        if os.path.isdir(user_dir):
+            conversations[user] = []
+            # Listar todas las conversaciones del usuario
+            for conversation in os.listdir(user_dir):
+                if conversation.endswith('.json'):  # Asumimos que las conversaciones se guardan como archivos JSON
+                    conversations[user].append(conversation)
+    
+    return conversations
+            
+            
 # def create_user_form():
 #     st.header("Create New User")
 #     new_email = st.text_input("Email")
